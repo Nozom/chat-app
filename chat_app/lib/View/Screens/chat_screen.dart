@@ -1,8 +1,9 @@
 import 'package:chat_app/Controller/chat_controller.dart';
-import 'package:chat_app/View/Widgets/other_bubble.dart';
-import 'package:chat_app/View/Widgets/user_bubble.dart';
+import 'package:chat_app/Model/message.dart';
+import 'package:chat_app/View/Widgets/chat_message.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:grouped_list/grouped_list.dart';
 
 import '../Widgets/profile_avatar.dart';
 
@@ -77,7 +78,7 @@ class ChatScreen extends StatelessWidget {
                 ),
                 IconButton(
                   onPressed: () {},
-                  icon: const Icon(Icons.menu),
+                  icon: const Icon(Icons.more_vert),
                 ),
               ],
             ),
@@ -92,53 +93,80 @@ class ChatScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: AnimatedList(
-                      key: controller.key,
-                      initialItemCount: controller.messages.length,
+                    child: GroupedListView<Message, DateTime>(
+                      elements: controller.messages,
                       controller: controller.listController,
-                      padding: const EdgeInsets.all(8),
-                      itemBuilder: (context, index, animation) {
-                        return ScaleTransition(
-                          scale: animation,
-                          child: FadeTransition(
-                            opacity: animation,
-                            child: controller.messages[index].from ==
-                                    controller.email
-                                ? UserBubble(
-                                    message: controller.messages[index].text,
-                                    time: TimeOfDay(
-                                      hour:
-                                          controller.messages[index].date.hour,
-                                      minute: controller
-                                          .messages[index].date.minute,
-                                    ),
-                                    hasTail: index == 0 ||
-                                        (controller.messages[index].from ==
-                                                controller.email &&
-                                            controller
-                                                    .messages[index - 1].from !=
-                                                controller.email),
-                                    isRead: controller2.messages[index].isRead,
-                                  )
-                                : OtherBubble(
-                                    message: controller.messages[index].text,
-                                    time: TimeOfDay(
-                                      hour:
-                                          controller.messages[index].date.hour,
-                                      minute: controller
-                                          .messages[index].date.minute,
-                                    ),
-                                    hasTail: index == 0 ||
-                                        (controller.messages[index].from !=
-                                                controller.email &&
-                                            controller
-                                                    .messages[index - 1].from ==
-                                                controller.email),
-                                  ),
+                      groupBy: (message) => DateTime(
+                        message.date.year,
+                        message.date.month,
+                        message.date.day,
+                      ),
+                      floatingHeader: true,
+                      useStickyGroupSeparators: true,
+                      groupSeparatorBuilder: (date) {
+                        final int days = DateTime.now()
+                            .difference(
+                                DateTime(date.year, date.month, date.day))
+                            .inDays;
+                        return Align(
+                          alignment: Alignment.topCenter,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            margin: const EdgeInsets.all(8),
+                            constraints: BoxConstraints(
+                              minWidth: MediaQuery.of(context).size.width * 0.1,
+                              maxWidth: MediaQuery.of(context).size.width * 0.4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Text(
+                              days == 0
+                                  ? 'Today'
+                                  : days == 1
+                                      ? 'Yesterday'
+                                      : DateTime(
+                                              date.year, date.month, date.day)
+                                          .toString(),
+                              style: const TextStyle(color: Colors.black54),
+                            ),
                           ),
                         );
                       },
+                      itemBuilder: (context, message) {
+                        final int index = controller.messages.indexOf(message);
+                        return ChatMessage(
+                          message: message,
+                          index: index,
+                          from: controller.email,
+                          previousMessage:
+                              index > 0 ? controller.messages[index - 1] : null,
+                        );
+                      },
                     ),
+                    // child: AnimatedList(
+                    //   key: controller.key,
+                    //   initialItemCount: controller.messages.length,
+                    //   controller: controller.listController,
+                    //   padding: const EdgeInsets.all(8),
+                    //   itemBuilder: (context, index, animation) {
+                    //     return ScaleTransition(
+                    //       scale: animation,
+                    //       child: FadeTransition(
+                    //         opacity: animation,
+                    //         child: ChatMessage(
+                    //           message: controller2.messages[index],
+                    //           index: index,
+                    //           from: controller.email,
+                    //           previousMessage: index > 0
+                    //               ? controller.messages[index - 1]
+                    //               : null,
+                    //         ),
+                    //       ),
+                    //     );
+                    //   },
+                    // ),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(12.0),
@@ -204,7 +232,20 @@ class ChatScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            ), // This trailing comma makes auto-formatting nicer for build methods.
+            ),
+            floatingActionButton: controller2.showButton
+                ? Container(
+                    margin: const EdgeInsets.only(bottom: 60),
+                    child: FloatingActionButton(
+                      onPressed: controller.scrollDown,
+                      mini: true,
+                      shape: const CircleBorder(),
+                      child: const Icon(
+                        Icons.arrow_downward_outlined,
+                      ),
+                    ),
+                  )
+                : null, // This trailing comma makes auto-formatting nicer for build methods.
           );
         });
   }

@@ -31,8 +31,25 @@ class ChatController extends GetxController {
 
   Timer? _timer;
 
+  bool _showButton = false;
+  bool get showButton => _showButton;
+
   @override
   void onInit() {
+    listController.addListener(() {
+      if (listController.position.pixels <
+          listController.position.maxScrollExtent - 200) {
+        if (!_showButton) {
+          _showButton = true;
+          update();
+        }
+      } else {
+        if (_showButton) {
+          _showButton = false;
+          update();
+        }
+      }
+    });
     _socket.connect();
     _socket.emit('connected', email);
     _socket.emit('message-read', to);
@@ -79,7 +96,6 @@ class ChatController extends GetxController {
             (message) => messages[messages.indexOf(message)] =
                 message.copyWith(isRead: true),
           );
-      print(messages.last.isRead);
       update();
     });
     super.onInit();
@@ -131,13 +147,19 @@ class ChatController extends GetxController {
       );
       messages.add(message);
       controller.clear();
-      Future.delayed(const Duration(milliseconds: 100), () {
-        listController.animateTo(
-          listController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-        );
-      });
+      if (listController.position.pixels >
+          listController.position.maxScrollExtent - 200) {
+        Future.delayed(const Duration(milliseconds: 100), scrollDown);
+      } else {
+        Future.delayed(const Duration(milliseconds: 100), () {
+          listController.animateTo(
+            listController.position.pixels + 100,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+          );
+        });
+      }
+
       _isSend = false;
       _socket.emit('message', message.toJson());
       onEditingComplete();
@@ -148,5 +170,13 @@ class ChatController extends GetxController {
   void onEditingComplete() {
     _socket.emit('stop-typing', to);
     _timer?.cancel();
+  }
+
+  void scrollDown() {
+    listController.animateTo(
+      listController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+    );
   }
 }
