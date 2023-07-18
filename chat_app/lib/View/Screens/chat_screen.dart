@@ -93,57 +93,64 @@ class ChatScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: GroupedListView<Message, DateTime>(
-                      elements: controller.messages,
-                      controller: controller.listController,
-                      groupBy: (message) => DateTime(
-                        message.date.year,
-                        message.date.month,
-                        message.date.day,
+                    child: NotificationListener(
+                      onNotification: controller2.onNotification,
+                      child: GroupedListView<Message, DateTime>(
+                        elements: controller.messages,
+                        controller: controller.listController,
+                        groupBy: (message) => DateTime(
+                          message.date.year,
+                          message.date.month,
+                          message.date.day,
+                        ),
+                        floatingHeader: true,
+                        useStickyGroupSeparators: true,
+                        groupSeparatorBuilder: (date) {
+                          final int days = DateTime.now()
+                              .difference(
+                                  DateTime(date.year, date.month, date.day))
+                              .inDays;
+                          return Align(
+                            alignment: Alignment.topCenter,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              margin: const EdgeInsets.all(8),
+                              constraints: BoxConstraints(
+                                minWidth:
+                                    MediaQuery.of(context).size.width * 0.1,
+                                maxWidth:
+                                    MediaQuery.of(context).size.width * 0.4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Text(
+                                days == 0
+                                    ? 'Today'
+                                    : days == 1
+                                        ? 'Yesterday'
+                                        : DateTime(
+                                                date.year, date.month, date.day)
+                                            .toString(),
+                                style: const TextStyle(color: Colors.black54),
+                              ),
+                            ),
+                          );
+                        },
+                        itemBuilder: (context, message) {
+                          final int index =
+                              controller.messages.indexOf(message);
+                          return ChatMessage(
+                            message: message,
+                            index: index,
+                            from: controller.email,
+                            previousMessage: index > 0
+                                ? controller.messages[index - 1]
+                                : null,
+                          );
+                        },
                       ),
-                      floatingHeader: true,
-                      useStickyGroupSeparators: true,
-                      groupSeparatorBuilder: (date) {
-                        final int days = DateTime.now()
-                            .difference(
-                                DateTime(date.year, date.month, date.day))
-                            .inDays;
-                        return Align(
-                          alignment: Alignment.topCenter,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            margin: const EdgeInsets.all(8),
-                            constraints: BoxConstraints(
-                              minWidth: MediaQuery.of(context).size.width * 0.1,
-                              maxWidth: MediaQuery.of(context).size.width * 0.4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Text(
-                              days == 0
-                                  ? 'Today'
-                                  : days == 1
-                                      ? 'Yesterday'
-                                      : DateTime(
-                                              date.year, date.month, date.day)
-                                          .toString(),
-                              style: const TextStyle(color: Colors.black54),
-                            ),
-                          ),
-                        );
-                      },
-                      itemBuilder: (context, message) {
-                        final int index = controller.messages.indexOf(message);
-                        return ChatMessage(
-                          message: message,
-                          index: index,
-                          from: controller.email,
-                          previousMessage:
-                              index > 0 ? controller.messages[index - 1] : null,
-                        );
-                      },
                     ),
                     // child: AnimatedList(
                     //   key: controller.key,

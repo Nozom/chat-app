@@ -30,9 +30,27 @@ class ChatController extends GetxController {
   DateTime? get lastSeen => _lastSeen;
 
   Timer? _timer;
+  Timer? _collapseTimer;
 
   bool _showButton = false;
   bool get showButton => _showButton;
+
+  bool _isHeaderCollapsed = false;
+  bool get isHeaderCollapsed => _isHeaderCollapsed;
+
+  bool onNotification(Notification notification) {
+    if (notification is ScrollUpdateNotification) {
+      _collapseTimer?.cancel();
+      _isHeaderCollapsed = false;
+      update();
+    } else if (notification is ScrollEndNotification) {
+      _collapseTimer = Timer(const Duration(seconds: 2), () {
+        _isHeaderCollapsed = true;
+        update();
+      });
+    }
+    return true;
+  }
 
   @override
   void onInit() {
@@ -107,6 +125,7 @@ class ChatController extends GetxController {
     _socket.disconnect();
     _socket.dispose();
     _timer?.cancel();
+    _collapseTimer?.cancel();
     super.onClose();
   }
 
