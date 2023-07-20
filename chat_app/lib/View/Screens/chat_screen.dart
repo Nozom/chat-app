@@ -4,6 +4,7 @@ import 'package:chat_app/View/Widgets/chat_message.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:grouped_list/grouped_list.dart';
+import 'package:swipe_to/swipe_to.dart';
 
 import '../Widgets/profile_avatar.dart';
 
@@ -141,13 +142,19 @@ class ChatScreen extends StatelessWidget {
                         itemBuilder: (context, message) {
                           final int index =
                               controller.messages.indexOf(message);
-                          return ChatMessage(
-                            message: message,
-                            index: index,
-                            from: controller.email,
-                            previousMessage: index > 0
-                                ? controller.messages[index - 1]
-                                : null,
+                          return SwipeTo(
+                            onRightSwipe: () {
+                              controller.onSwipe(message);
+                            },
+                            iconColor: Colors.white,
+                            child: ChatMessage(
+                              message: message,
+                              index: index,
+                              from: controller.email,
+                              previousMessage: index > 0
+                                  ? controller.messages[index - 1]
+                                  : null,
+                            ),
                           );
                         },
                       ),
@@ -178,47 +185,95 @@ class ChatScreen extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Expanded(
-                          child: TextField(
-                            controller: controller.controller,
-                            onChanged: controller.onTextChanged,
-                            onEditingComplete: controller.onEditingComplete,
-                            minLines: 1,
-                            maxLines: 3,
-                            decoration: InputDecoration(
-                              hintText: 'Type Something.....',
-                              prefixIcon: IconButton(
-                                onPressed: () {},
-                                icon: const Icon(Icons.emoji_emotions_outlined),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                padding: const EdgeInsets.all(8),
+                                height: controller.reply != null ? 100 : 0,
+                                decoration: const BoxDecoration(
+                                  borderRadius:
+                                      BorderRadiusDirectional.vertical(
+                                    top: Radius.circular(15),
+                                  ),
+                                  color: Colors.white,
+                                ),
+                                child: controller.reply != null
+                                    ? Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey,
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                          border: const BorderDirectional(
+                                            start: BorderSide(
+                                              color: Colors.indigo,
+                                            ),
+                                          ),
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                              controller.reply!.from !=
+                                                      controller.email
+                                                  ? controller.reply!.from
+                                                  : 'You',
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : const SizedBox(),
                               ),
-                              suffixIcon: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
+                              TextField(
+                                controller: controller.controller,
+                                onChanged: controller.onTextChanged,
+                                onEditingComplete: controller.onEditingComplete,
+                                minLines: 1,
+                                maxLines: 3,
+                                decoration: InputDecoration(
+                                  hintText: 'Type Something.....',
+                                  prefixIcon: IconButton(
                                     onPressed: () {},
                                     icon: const Icon(
-                                      Icons.image_outlined,
-                                    ),
+                                        Icons.emoji_emotions_outlined),
                                   ),
-                                  IconButton(
-                                    onPressed: () {},
-                                    icon: Transform.rotate(
-                                      angle: 0.6,
-                                      child: const Icon(
-                                        Icons.attach_file_outlined,
+                                  suffixIcon: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        onPressed: () {},
+                                        icon: const Icon(
+                                          Icons.image_outlined,
+                                        ),
                                       ),
-                                    ),
+                                      IconButton(
+                                        onPressed: () {},
+                                        icon: Transform.rotate(
+                                          angle: 0.6,
+                                          child: const Icon(
+                                            Icons.attach_file_outlined,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                  border: OutlineInputBorder(
+                                    borderRadius: controller.reply != null
+                                        ? const BorderRadius.vertical(
+                                            bottom: Radius.circular(25))
+                                        : BorderRadius.circular(25),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                ),
                               ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(25),
-                                borderSide: BorderSide.none,
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                            ),
+                            ],
                           ),
                         ),
                         ElevatedButton(
@@ -243,12 +298,18 @@ class ChatScreen extends StatelessWidget {
             floatingActionButton: controller2.showButton
                 ? Container(
                     margin: const EdgeInsets.only(bottom: 60),
-                    child: FloatingActionButton(
-                      onPressed: controller.scrollDown,
-                      mini: true,
-                      shape: const CircleBorder(),
-                      child: const Icon(
-                        Icons.arrow_downward_outlined,
+                    clipBehavior: Clip.none,
+                    child: Badge(
+                      alignment: AlignmentDirectional.topEnd,
+                      isLabelVisible: controller.newMessages > 0,
+                      label: Text('${controller.newMessages}'),
+                      child: FloatingActionButton(
+                        onPressed: controller.scrollDown,
+                        mini: true,
+                        shape: const CircleBorder(),
+                        child: const Icon(
+                          Icons.arrow_downward_outlined,
+                        ),
                       ),
                     ),
                   )

@@ -12,7 +12,7 @@ class ChatController extends GetxController {
   final ScrollController listController = ScrollController();
   final String email = Get.arguments['email'];
   final String to = Get.arguments['to'];
-  final io.Socket _socket = io.io('http://172.16.16.100:4000', {
+  final io.Socket _socket = io.io('http://172.16.16.130:4000', {
     'autoConnect': false,
     'transports': ['websocket'],
   });
@@ -37,6 +37,12 @@ class ChatController extends GetxController {
 
   bool _isHeaderCollapsed = false;
   bool get isHeaderCollapsed => _isHeaderCollapsed;
+
+  int _newMessages = 0;
+  int get newMessages => _newMessages;
+
+  Message? _reply;
+  Message? get reply => _reply;
 
   bool onNotification(Notification notification) {
     if (notification is ScrollUpdateNotification) {
@@ -63,6 +69,7 @@ class ChatController extends GetxController {
         }
       } else {
         if (_showButton) {
+          _newMessages = 0;
           _showButton = false;
           update();
         }
@@ -78,13 +85,22 @@ class ChatController extends GetxController {
         duration: const Duration(milliseconds: 200),
       );
       messages.add(message);
-      Future.delayed(const Duration(milliseconds: 100), () {
-        listController.animateTo(
-          listController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-        );
-      });
+      if (listController.position.pixels >
+          listController.position.maxScrollExtent - 200) {
+        Future.delayed(const Duration(milliseconds: 100), scrollDown);
+      } else {
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (_newMessages == 0) {
+            listController.animateTo(
+              listController.position.pixels + 100,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+            );
+          }
+          _newMessages++;
+          update();
+        });
+      }
       _socket.emit('message-read', to);
       update();
     });
@@ -166,18 +182,7 @@ class ChatController extends GetxController {
       );
       messages.add(message);
       controller.clear();
-      if (listController.position.pixels >
-          listController.position.maxScrollExtent - 200) {
-        Future.delayed(const Duration(milliseconds: 100), scrollDown);
-      } else {
-        Future.delayed(const Duration(milliseconds: 100), () {
-          listController.animateTo(
-            listController.position.pixels + 100,
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-          );
-        });
-      }
+      Future.delayed(const Duration(milliseconds: 100), scrollDown);
 
       _isSend = false;
       _socket.emit('message', message.toJson());
@@ -197,5 +202,10 @@ class ChatController extends GetxController {
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeInOut,
     );
+  }
+
+  void onSwipe(Message message) {
+    _reply = message;
+    update();
   }
 }
