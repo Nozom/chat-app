@@ -193,7 +193,8 @@ class ChatScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
+                                duration: const Duration(milliseconds: 200),
+                                curve: Curves.easeInOut,
                                 padding: const EdgeInsets.all(8),
                                 height: controller.reply != null ? 100 : 0,
                                 decoration: const BoxDecoration(
@@ -203,74 +204,120 @@ class ChatScreen extends StatelessWidget {
                                   ),
                                   color: Colors.white,
                                 ),
-                                child: controller.reply != null
-                                    ? Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey,
-                                          borderRadius:
-                                              BorderRadius.circular(15),
-                                          border: const BorderDirectional(
-                                            start: BorderSide(
-                                              color: Colors.indigo,
-                                            ),
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  clipBehavior: Clip.none,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.grey,
+                                    // borderRadius:
+                                    //     BorderRadius.circular(15),
+                                    border: BorderDirectional(
+                                      start: BorderSide(
+                                        color: Colors.indigo,
+                                        width: 6,
+                                      ),
+                                    ),
+                                  ),
+                                  child: controller.reply != null
+                                      ? SingleChildScrollView(
+                                          physics:
+                                              const NeverScrollableScrollPhysics(),
+                                          child: Stack(
+                                            clipBehavior: Clip.none,
+                                            alignment:
+                                                AlignmentDirectional.topEnd,
+                                            children: [
+                                              Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.stretch,
+                                                children: [
+                                                  Text(
+                                                    controller.reply!.from !=
+                                                            controller.email
+                                                        ? controller.reply!.from
+                                                        : 'You',
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.indigo,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(
+                                                    height: 8,
+                                                  ),
+                                                  Text(
+                                                    controller.reply!.text,
+                                                  ),
+                                                ],
+                                              ),
+                                              Positioned.directional(
+                                                textDirection:
+                                                    Directionality.of(context),
+                                                top: -15,
+                                                end: -15,
+                                                child: IconButton(
+                                                  onPressed:
+                                                      controller.closeReply,
+                                                  icon: const Icon(
+                                                    Icons.close,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ),
-                                        child: Column(
-                                          children: [
-                                            Text(
-                                              controller.reply!.from !=
-                                                      controller.email
-                                                  ? controller.reply!.from
-                                                  : 'You',
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    : const SizedBox(),
+                                        )
+                                      : const SizedBox(),
+                                ),
                               ),
-                              TextField(
-                                controller: controller.controller,
-                                onChanged: controller.onTextChanged,
-                                onEditingComplete: controller.onEditingComplete,
-                                minLines: 1,
-                                maxLines: 3,
-                                decoration: InputDecoration(
-                                  hintText: 'Type Something.....',
-                                  prefixIcon: IconButton(
-                                    onPressed: () {},
-                                    icon: const Icon(
-                                        Icons.emoji_emotions_outlined),
-                                  ),
-                                  suffixIcon: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        onPressed: () {},
-                                        icon: const Icon(
-                                          Icons.image_outlined,
-                                        ),
-                                      ),
-                                      IconButton(
-                                        onPressed: () {},
-                                        icon: Transform.rotate(
-                                          angle: 0.6,
-                                          child: const Icon(
-                                            Icons.attach_file_outlined,
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius:  controller.reply != null
+                                      ? const BorderRadius.vertical(
+                                          bottom: Radius.circular(25),
+                                        )
+                                      : BorderRadius.circular(25),
+                                ),
+                                child: TextField(
+                                  controller: controller.controller,
+                                  onChanged: controller.onTextChanged,
+                                  onEditingComplete: controller.onEditingComplete,
+                                  minLines: 1,
+                                  maxLines: 3,
+                                  decoration: InputDecoration(
+                                    hintText: 'Type Something.....',
+                                    prefixIcon: IconButton(
+                                      onPressed: () {},
+                                      icon: const Icon(
+                                          Icons.emoji_emotions_outlined),
+                                    ),
+                                    suffixIcon: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          onPressed: () {},
+                                          icon: const Icon(
+                                            Icons.image_outlined,
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                        IconButton(
+                                          onPressed: () {},
+                                          icon: Transform.rotate(
+                                            angle: 0.6,
+                                            child: const Icon(
+                                              Icons.attach_file_outlined,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius:BorderRadius.circular(25),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.white,
                                   ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: controller.reply != null
-                                        ? const BorderRadius.vertical(
-                                            bottom: Radius.circular(25))
-                                        : BorderRadius.circular(25),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.white,
                                 ),
                               ),
                             ],

@@ -12,7 +12,7 @@ class ChatController extends GetxController {
   final ScrollController listController = ScrollController();
   final String email = Get.arguments['email'];
   final String to = Get.arguments['to'];
-  final io.Socket _socket = io.io('http://172.16.16.130:4000', {
+  final io.Socket _socket = io.io('http://172.16.16.100:4000', {
     'autoConnect': false,
     'transports': ['websocket'],
   });
@@ -182,6 +182,7 @@ class ChatController extends GetxController {
       );
       messages.add(message);
       controller.clear();
+      closeReply();
       Future.delayed(const Duration(milliseconds: 100), scrollDown);
 
       _isSend = false;
@@ -206,6 +207,11 @@ class ChatController extends GetxController {
 
   void onSwipe(Message message) {
     _reply = message;
+    update();
+  }
+
+  void closeReply() {
+    _reply = null;
     update();
   }
 }
